@@ -1,0 +1,17 @@
+# для запуска юпитера и т.п.
+ipykernel 
+ipywidgets
+
+pandas
+# для создание эмбеддингов (векторов) текстов
+sentence-transformers
+# высокоуровневые классы для работы с языковыми моделями
+langchain-community
+langchain
+# приведённые выше библиотеки включают много своих зависимостей: numpy, pytorch и др
+
+# для векторной БД 
+faiss-cpu 
+#faiss-gpu
+# для взаимодействия с сервером OLLAMA
+ollama
