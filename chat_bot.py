@@ -6,6 +6,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 # класс-обёртка для создания эмбеддингов текстов
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
+
 def init_emb_model(model_name:str, model_kwargs:dict, encode_kwargs:dict):
     """Скачивает (если нужно) языковую модель для эмбеддингов, возвращает её"""
 
@@ -19,6 +20,7 @@ def init_emb_model(model_name:str, model_kwargs:dict, encode_kwargs:dict):
         encode_kwargs=encode_kwargs
     )
     return Embeddings_maker
+
 
 def load_dataset(filename_json: str, embeddings_maker):
     """Загружает датасет, создаёт векторную БД
@@ -45,9 +47,8 @@ def load_dataset(filename_json: str, embeddings_maker):
     return texts
 
 
-
 def get_context(user_request: str, db, top):
-    """получить контекст для вопроса
+    """Получить контекст для вопроса (top - число документов) используя БД db
     @param user_request: исхдный запрос пользователя
     @param db - объект векторной БД
     @param top - сколько похожих объектов извлекать?
