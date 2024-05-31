@@ -20,24 +20,24 @@ import json
 
 
 # todo: обновить
-def load_dataset( filename:str ):
-    """Загружает датасет из вопросов и ответов.
-    Формат файла:
-    Вопрос? <одна строка>
-    Ответ,
-    ответ может занимает несколько абзацев или строк
-    @return: DataFrame(columns=['Q', 'A'])"""
-
-    Q = []      # вопросы
-    A = []      # ответы
-    print('Начало обработки файла')
-    # загрузка вопросов и ответов из файла
-    with open( filename ) as f_in:
-        json_dict = json.load(f_in)
-        print(type(json_dict))
-    print('Конец обработки файла')
-    data = pd.DataFrame( {"Q":Q, "A":A})
-    return data
+# def load_dataset( filename:str ):
+#     """Загружает датасет из вопросов и ответов.
+#     Формат файла:
+#     Вопрос? <одна строка>
+#     Ответ,
+#     ответ может занимает несколько абзацев или строк
+#     @return: DataFrame(columns=['Q', 'A'])"""
+#
+#     Q = []      # вопросы
+#     A = []      # ответы
+#     print('Начало обработки файла')
+#     # загрузка вопросов и ответов из файла
+#     with open( filename ) as f_in:
+#         json_dict = json.load(f_in)
+#         print(type(json_dict))
+#     print('Конец обработки файла')
+#     data = pd.DataFrame( {"Q":Q, "A":A})
+#     return data
 
 
 # класс-обёртка для создания эмбеддингов текстов
@@ -55,8 +55,10 @@ embeddings_maker = HuggingFaceEmbeddings(
 )
 
 
-data = load_dataset("data/dataset.json")
-loader = DataFrameLoader(data, page_content_column='Q')   
+data = pd.json_normalize( pd.read_json("data/dataset.json")['data'])
+# json_normalize чтобы избавиться от корневого элемента, сделать плоский датафреим
+print(f"Загружено документов: {len(data)}" )
+loader = DataFrameLoader(data, page_content_column='title')
 documents = loader.load()
 
 # объект, который будет разбивать тексты из датасета на блоки, если вдруг они будут слишком большими для модели выдающий эмбеддинги
@@ -68,17 +70,19 @@ text_splitter = RecursiveCharacterTextSplitter(chunk_size = embeddings_maker.cli
 # Вопрос может быть не полным, если не поместится в chunk_size. Тогда создаётся новый блок, с остатком вопроса, но с таким же ответом.
 texts = text_splitter.split_documents(documents)
 print(f"текстов: {len(texts)}")          # при максимальном размере вопроса в токенах 384, разбивать вопросы на части не пришлось.
-# texts
 
-      # зададим ключ для поиска по текстам, это колонка с вопросом\n",
-
-
-# # создаем хранилище
-# db = FAISS.from_documents(texts, embeddings_maker)
+# создаем хранилище
+print("создаем хранилище... ", end="")
+db = FAISS.from_documents(texts, embeddings_maker)
+print("Создано")
 # db.as_retriever()           # ???
 
+# todo: тут нужно сохранить БД в отдельное место
 # # пример использования:
-# db.similarity_search_with_score('Как участвовать на нескольких хакатонах?', k = 5 )
+
+print(
+db.similarity_search_with_score('Как перевыпустит карту', k = 5 )
+)
 # # поданный запрос переводится в эмбеддинг, для него выдаётся топ K самых похожих частей датасета (вопрос, ответ, расстояние)
 
 
