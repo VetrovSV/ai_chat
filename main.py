@@ -2,12 +2,7 @@
 Главный файл приложения
 """
 
-import pandas as pd
-# from langchain.document_loaders import DataFrameLoader                  # отдельный тип для хранения датафреймов (depricated)
-from langchain_community.document_loaders import DataFrameLoader
-
-# будет разбивать тексты на части, чтобы делать их них эмбеддинги
-from langchain.text_splitter import RecursiveCharacterTextSplitter      
+import chat_bot
 
 # todo: разобраться с предупреждениями
 
@@ -31,32 +26,17 @@ LLM_NAME = "gemma:2b"
 # загрузка модели эмбеддингов
 model_kwargs = {'device': 'cpu'}
 encode_kwargs = {'normalize_embeddings': False}
-embeddings_maker = HuggingFaceEmbeddings(
+Embeddings_maker = HuggingFaceEmbeddings(
     model_name=EMB_MODEL_NAME,
     model_kwargs=model_kwargs,
     encode_kwargs=encode_kwargs
 )
 
-# загрузка датасета
-data = pd.json_normalize( pd.read_json("data/dataset.json")['data'])
-# json_normalize, чтобы избавиться от корневого элемента, сделать плоский датафреим
-print(f"Загружено документов: {len(data)}" )
 
-
-# создание БД из датасета
-loader = DataFrameLoader(data, page_content_column='title')
-documents = loader.load()
-# объект, который будет разбивать тексты из датасета на блоки, если вдруг они будут слишком большими для модели выдающий эмбеддинги
-text_splitter = RecursiveCharacterTextSplitter(chunk_size = embeddings_maker.client.max_seq_length, chunk_overlap=0)
-# chunk_size - это размер блока в токенах, будет разбивать на части только ключ (здесь, это вопрос)
-# получим блоки. Блок = (вопрос (ключ), ответ);
-# Вопрос может быть не полным, если не поместится в chunk_size. Тогда создаётся новый блок, с остатком вопроса, но с таким же ответом.
-texts = text_splitter.split_documents(documents)
-print(f"текстов: {len(texts)}")          # при максимальном размере вопроса в токенах 384, разбивать вопросы на части не пришлось.
-
+Texts = chat_bot.load_dataset( filename_json = "data/dataset.json", embeddings_maker=Embeddings_maker)
 # создаем хранилище
 print("создаем хранилище... ", end="")
-db = FAISS.from_documents(texts, embeddings_maker)
+db = FAISS.from_documents(Texts, Embeddings_maker)
 print("Создано")
 # db.as_retriever()           # ???
 
@@ -64,7 +44,7 @@ print("Создано")
 # # пример использования:
 
 # print(
-# db.similarity_search_with_score('Как перевыпустит карту', k = 5 )
+# db.similarity_search_with_score('Как перевыпустить карту', k = 5 )
 # )
 # # поданный запрос переводится в эмбеддинг, для него выдаётся топ K самых похожих частей датасета (вопрос, ответ, расстояние)
 
