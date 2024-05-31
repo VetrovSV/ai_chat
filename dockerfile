@@ -13,9 +13,31 @@ run mkdir /var/run/sshd
 run ssh-keygen -A
 
 # задать пароль пользователя
-run useradd -ms /bin/bash user
-run echo "user:user" | chpasswd
+# run useradd -ms /bin/bash user
+# RUN adduser --home /home/app --shell /bin/bash app
+# run echo "app:app" | chpasswd
 
-cmd ["/usr/sbin/sshd", "-D"]
+RUN adduser --disabled-password --home /home/app --shell /bin/bash app
+
+USER app
+WORKDIR /home/app
+
+COPY requirements_server_test.txt requirements.txt
+RUN pip3 install -r requirements.txt
+# RUN python -m venv app_venv
+# похоже это костыль, создавать виртуальное окружение, но так быстрее настроить
+# RUN source app_venv/bin/acivate
+
+COPY ["testAPI/Client_Server (Gena)/*", "."]
+# ADD templates/* /home/app/templates/
+
+
+# проверка сервера: curl -X POST -H 'Content-Type: application/json' -d '{"query":"Hello"}'  http://0.0.0.0:8000/assist
+
+
+# cmd ["/usr/sbin/sshd", "-D"]
+cmd python3 main.py
+
 
 # docker build -t <имя_образа> <путь к каталогу c dockerfile>
+# docker run  -p 8000:8000
