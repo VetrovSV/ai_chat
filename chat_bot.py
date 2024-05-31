@@ -3,6 +3,23 @@ from langchain_community.document_loaders import DataFrameLoader
 # будет разбивать тексты на части, чтобы делать их них эмбеддинги
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
+# класс-обёртка для создания эмбеддингов текстов
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
+def init_emb_model(model_name:str, model_kwargs:dict, encode_kwargs:dict):
+    """Скачивает (если нужно) языковую модель для эмбеддингов, возвращает её"""
+
+    # загрузка модели эмбеддингов
+    # model_kwargs = {'device': 'cpu'}
+    # encode_kwargs = {'normalize_embeddings': False}
+    # сделать более точную настройку параметров, если необходимо
+    Embeddings_maker = HuggingFaceEmbeddings(
+        model_name=model_name,
+        model_kwargs=model_kwargs,
+        encode_kwargs=encode_kwargs
+    )
+    return Embeddings_maker
+
 def load_dataset(filename_json: str, embeddings_maker):
     """Загружает датасет, создаёт векторную БД
     @param filename_json -- JSON файл с датасетом вопросов и ответов
@@ -26,3 +43,19 @@ def load_dataset(filename_json: str, embeddings_maker):
     print(
         f"текстов: {len(texts)}")  # при максимальном размере вопроса в токенах 384, разбивать вопросы на части не пришлось.
     return texts
+
+
+
+def get_context(user_request: str, db, top):
+    """получить контекст для вопроса
+    @param user_request: исхдный запрос пользователя
+    @param db - объект векторной БД
+    @param top - сколько похожих объектов извлекать?
+    #@return
+    """
+    # todo: сделать отбор документов для контекста на основе порогового расстояния?
+    context = db.similarity_search_with_score(user_request, k=top)
+    context = "\n\n".join([text[0].metadata['description'] for text in context])
+    # todo: контролировать размер контекста, чтобы он влезал в промпт LLM
+    # print(context)
+    return context
