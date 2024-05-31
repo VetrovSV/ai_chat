@@ -1,11 +1,11 @@
 import requests
 
 # URL вашего API
-api_url = "http://127.0.0.1:8000/assist"
+api_url = "http://0.0.0.0:8002/assist"
 
 # Данные запроса
 request_data = {
-    "query": "Hello"
+    "query": "Как открыть счёт?"
 }
 
 # Отправка POST-запроса

@@ -1,60 +1,26 @@
 """
-Главный файл приложения
-
-Дописывать обработки запроса по API сюда
+Главный файл приложения. Криво добавлен сервер (см. todo ниже)
+Отвечает только контекстными документами.
+Важно чтобы этот файл назывался main.py!
 """
+
+from fastapi import FastAPI, HTTPException
+from models import Request, Response, HTTPValidationError
+import uvicorn
 import chat_bot
-import ollama
-# класс для хранения данных как в векторной БД?. Используется для быстрого поиска подходящего контекста по запросу
-from langchain_community.vectorstores import FAISS
 
 
-# название модели для получения эмебддингов
-EMB_MODEL_NAME = "cointegrated/LaBSE-en-ru"
-# название большой языковойй модели
-LLM_NAME = "dimweb/ilyagusev-saiga_llama3_8b:Q6_K"
-LLM_NAME = "gemma:2b"
-# файл векторной БД с индексами (и чем-то ещё?)
-DB_FAISS = "data/dataset.faiss"
+DB = chat_bot.init_DB()  # todo: это запускается три раза. Как исправить?
+
+app = FastAPI(title="Assistant API", version="0.1.0")
 
 
-# загрузка модели эмбеддингов
-Embeddings_maker = chat_bot.init_emb_model( model_name= EMB_MODEL_NAME,
-                                            model_kwargs = {'device': 'cpu'}, encode_kwargs = {'normalize_embeddings': False} )
-# попробовать нормализацию эмбеддингов?
+@app.post("/assist", response_model=Response, responses={422: {"model": HTTPValidationError}})
+async def assist(request: Request):
+    global DB
+    context = chat_bot.get_context(request.query, DB, top=2)
+    return Response(text=f"Processed query: {context}", links=["http://example.com"])
 
 
-Texts = chat_bot.load_dataset( filename_json = "data/dataset.json", embeddings_maker=Embeddings_maker)
-# создаем хранилище
-print("создаем хранилище... ", end="")
-# DB = FAISS.from_documents(Texts, Embeddings_maker)    # вернёт экземпляр FAISS
-# DB.save_local(DB_FAISS)
-# https://api.python.langchain.com/en/latest/vectorstores/langchain_community.vectorstores.faiss.FAISS.html#langchain_community.vectorstores.faiss.FAISS.save_local
-DB = FAISS.load_local(folder_path=DB_FAISS, embeddings=Embeddings_maker,
-                                            allow_dangerous_deserialization = True    # да, я уверен, что в файле нет вредоносного кода
-                      )
-print("Создано")
-# db.as_retriever()           # ???
-# todo: тут нужно сохранить БД в отдельное место. Иначе создание занимает пару минут
-
-
-request = input("Вопрос: ")
-
-context = chat_bot.get_context(request, DB, top = 2)
-
-print("Контекст: \n"+context)
-# todo: где-то тут нужно уметь определить, что ответить невозможно. Выдывать в качестве ответа контакты или инфу для
-#  связи со специалистом
-response = ollama.chat(model=LLM_NAME, messages=[
-  {
-    'role': 'user',
-    'content': f'Дай развёрнутый и как можно более точный ответ на вопрос пользователя. '
-               f'Для ответа используй дополнительную информацию (FAQ). Приведи релевантные ссылки. '
-               f'\nВопрос: {request}.\n Дополнительная информация (FAQ): {context}',}],
-    stream = True
-)
-
-
-print("\n\n Ответ:")
-for chunk in response:
-  print(chunk['message']['content'], end='', flush=True)
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)

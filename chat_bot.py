@@ -6,6 +6,8 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 # класс-обёртка для создания эмбеддингов текстов
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
+# Класс для хранения данных как в векторной БД?. Используется для быстрого поиска подходящего контекста по запросу
+from langchain_community.vectorstores import FAISS
 
 def init_emb_model(model_name:str, model_kwargs:dict, encode_kwargs:dict):
     """Скачивает (если нужно) языковую модель для эмбеддингов, возвращает её"""
@@ -68,3 +70,31 @@ def get_context(user_request: str, db, top):
     # todo: контролировать размер контекста, чтобы он влезал в промпт LLM
     # print(context)
     return context
+
+
+def init_DB():
+    """для проверки работы сервера"""
+    # название модели для получения эмебддингов
+    EMB_MODEL_NAME = "cointegrated/LaBSE-en-ru"
+    # название большой языковойй модели
+    LLM_NAME = "dimweb/ilyagusev-saiga_llama3_8b:Q6_K"
+    LLM_NAME = "gemma:2b"
+    # файл векторной БД с индексами (и чем-то ещё?)
+    DB_FAISS = "data/dataset.faiss"
+
+    # загрузка модели эмбеддингов
+    Embeddings_maker = init_emb_model(model_name=EMB_MODEL_NAME,
+                                               model_kwargs={'device': 'cpu'},
+                                               encode_kwargs={'normalize_embeddings': False})
+    # попробовать нормализацию эмбеддингов?
+
+    Texts = load_dataset(filename_json="data/dataset.json", embeddings_maker=Embeddings_maker)
+    # создаем хранилище
+    print("создаем хранилище... ", end="")
+    # DB = FAISS.from_documents(Texts, Embeddings_maker)    # вернёт экземпляр FAISS
+    # DB.save_local(DB_FAISS)
+    # https://api.python.langchain.com/en/latest/vectorstores/langchain_community.vectorstores.faiss.FAISS.html#langchain_community.vectorstores.faiss.FAISS.save_local
+    DB = FAISS.load_local(folder_path=DB_FAISS, embeddings=Embeddings_maker,
+                          allow_dangerous_deserialization=True  # да, я уверен, что в файле нет вредоносного кода
+                          )
+    return DB
