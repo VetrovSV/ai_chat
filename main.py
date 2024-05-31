@@ -18,54 +18,37 @@ from langchain_community.vectorstores import FAISS
 # загрузка датасета, из которого будет использоваться информация для дополнения промпта
 import json
 
-
-# todo: обновить
-# def load_dataset( filename:str ):
-#     """Загружает датасет из вопросов и ответов.
-#     Формат файла:
-#     Вопрос? <одна строка>
-#     Ответ,
-#     ответ может занимает несколько абзацев или строк
-#     @return: DataFrame(columns=['Q', 'A'])"""
-#
-#     Q = []      # вопросы
-#     A = []      # ответы
-#     print('Начало обработки файла')
-#     # загрузка вопросов и ответов из файла
-#     with open( filename ) as f_in:
-#         json_dict = json.load(f_in)
-#         print(type(json_dict))
-#     print('Конец обработки файла')
-#     data = pd.DataFrame( {"Q":Q, "A":A})
-#     return data
-
-
 # класс-обёртка для создания эмбеддингов текстов
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
-# сравнительно простая (и быстрая) модель, выдаёт эмбеддинги () для текстов
 
-model_name = "cointegrated/LaBSE-en-ru"
+# название модели для получения эмебддингов
+EMB_MODEL_NAME = "cointegrated/LaBSE-en-ru"
+# название большой языковойй модели
+LLM_NAME = "dimweb/ilyagusev-saiga_llama3_8b:Q6_K"
+LLM_NAME = "gemma:2b"
+
+# загрузка модели эмбеддингов
 model_kwargs = {'device': 'cpu'}
 encode_kwargs = {'normalize_embeddings': False}
 embeddings_maker = HuggingFaceEmbeddings(
-    model_name=model_name,
+    model_name=EMB_MODEL_NAME,
     model_kwargs=model_kwargs,
     encode_kwargs=encode_kwargs
 )
 
-
+# загрузка датасета
 data = pd.json_normalize( pd.read_json("data/dataset.json")['data'])
-# json_normalize чтобы избавиться от корневого элемента, сделать плоский датафреим
+# json_normalize, чтобы избавиться от корневого элемента, сделать плоский датафреим
 print(f"Загружено документов: {len(data)}" )
+
+
+# создание БД из датасета
 loader = DataFrameLoader(data, page_content_column='title')
 documents = loader.load()
-
 # объект, который будет разбивать тексты из датасета на блоки, если вдруг они будут слишком большими для модели выдающий эмбеддинги
 text_splitter = RecursiveCharacterTextSplitter(chunk_size = embeddings_maker.client.max_seq_length, chunk_overlap=0)
-# text_splitter = RecursiveCharacterTextSplitter(chunk_size = 50, chunk_overlap=0)        # для примера
 # chunk_size - это размер блока в токенах, будет разбивать на части только ключ (здесь, это вопрос)
-
 # получим блоки. Блок = (вопрос (ключ), ответ);
 # Вопрос может быть не полным, если не поместится в chunk_size. Тогда создаётся новый блок, с остатком вопроса, но с таким же ответом.
 texts = text_splitter.split_documents(documents)
@@ -77,16 +60,16 @@ db = FAISS.from_documents(texts, embeddings_maker)
 print("Создано")
 # db.as_retriever()           # ???
 
-# todo: тут нужно сохранить БД в отдельное место
+# todo: тут нужно сохранить БД в отдельное место. Иначе создание занимает пару минут
 # # пример использования:
 
-print(
-db.similarity_search_with_score('Как перевыпустит карту', k = 5 )
-)
+# print(
+# db.similarity_search_with_score('Как перевыпустит карту', k = 5 )
+# )
 # # поданный запрос переводится в эмбеддинг, для него выдаётся топ K самых похожих частей датасета (вопрос, ответ, расстояние)
 
 
-# import ollama
+import ollama
 
 # # request = 'Мне 10 лет. Я могу участвовать в хакатоне?'
 # # request = 'Мне 100 лет. Я могу участвовать в хакатоне?'
@@ -94,19 +77,21 @@ db.similarity_search_with_score('Как перевыпустит карту', k 
 # # request = 'Как участвовать на нескольких хакатонах?'
 
 
-# request = input("Вопрос: ")
+request = input("Вопрос: ")
 
-# context = db.similarity_search_with_score(request, k = 5 )
-# context = " ".join([text[0].metadata['A'] for text in context])
-# print(context)
+print("\nКонтекст:")
+context = db.similarity_search_with_score(request, k = 5 )
+context = " ".join([text[0].metadata['description'] for text in context])
+print(context)
 
-# response = ollama.chat(model='dimweb/ilyagusev-saiga_llama3_8b:Q6_K', messages=[
-#   {
-#     'role': 'user',
-#     'content': f'Дай развёрнутый и как можно более точный ответ. Для ответа используй дополнительную информацию.\nВопрос: {request}.\n Дополнительная информация: {context}',}],
-#     stream = True
-# )
-# # print(response['message']['content'])
+response = ollama.chat(model=LLM_NAME, messages=[
+  {
+    'role': 'user',
+    'content': f'Дай развёрнутый и как можно более точный ответ. Для ответа используй дополнительную информацию.\nВопрос: {request}.\n Дополнительная информация: {context}',}],
+    stream = True
+)
 
-# for chunk in response:
-#   print(chunk['message']['content'], end='', flush=True)
+
+print("\n\n Ответ:")
+for chunk in response:
+  print(chunk['message']['content'], end='', flush=True)
