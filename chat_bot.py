@@ -54,9 +54,10 @@ def get_context(user_request: str, db, top):
     @param top - сколько похожих объектов извлекать?
     #@return
     """
+    # todo: добавлять ссылку
     # todo: сделать отбор документов для контекста на основе порогового расстояния?
     context = db.similarity_search_with_score(user_request, k=top)
-    context = "\n\n".join([text[0].metadata['description'] for text in context])
+    context = "\n\n".join([text[0].metadata['description']  for text in context])
     # todo: контролировать размер контекста, чтобы он влезал в промпт LLM
     # print(context)
     return context
