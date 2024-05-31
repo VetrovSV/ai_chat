@@ -15,3 +15,5 @@ faiss-cpu
 #faiss-gpu
 # для взаимодействия с сервером OLLAMA
 ollama
+
+fastapi
