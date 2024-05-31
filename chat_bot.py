@@ -9,6 +9,16 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 # Класс для хранения данных как в векторной БД?. Используется для быстрого поиска подходящего контекста по запросу
 from langchain_community.vectorstores import FAISS
 
+
+# название модели для получения эмебддингов
+EMB_MODEL_NAME = "cointegrated/LaBSE-en-ru"
+# название большой языковойй модели
+LLM_NAME = "dimweb/ilyagusev-saiga_llama3_8b:Q6_K"
+LLM_NAME = "gemma:2b"
+# файл векторной БД с индексами (и чем-то ещё?)
+DB_FAISS = "data/dataset.faiss"
+
+
 def init_emb_model(model_name:str, model_kwargs:dict, encode_kwargs:dict):
     """Скачивает (если нужно) языковую модель для эмбеддингов, возвращает её"""
 
@@ -74,14 +84,6 @@ def get_context(user_request: str, db, top):
 
 def init_DB():
     """для проверки работы сервера"""
-    # название модели для получения эмебддингов
-    EMB_MODEL_NAME = "cointegrated/LaBSE-en-ru"
-    # название большой языковойй модели
-    LLM_NAME = "dimweb/ilyagusev-saiga_llama3_8b:Q6_K"
-    LLM_NAME = "gemma:2b"
-    # файл векторной БД с индексами (и чем-то ещё?)
-    DB_FAISS = "data/dataset.faiss"
-
     # загрузка модели эмбеддингов
     Embeddings_maker = init_emb_model(model_name=EMB_MODEL_NAME,
                                                model_kwargs={'device': 'cpu'},

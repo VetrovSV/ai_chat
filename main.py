@@ -7,6 +7,7 @@
 from fastapi import FastAPI, HTTPException
 from models import Request, Response, HTTPValidationError
 import uvicorn
+import ollama
 import chat_bot
 
 
@@ -18,8 +19,18 @@ app = FastAPI(title="Assistant API", version="0.1.0")
 @app.post("/assist", response_model=Response, responses={422: {"model": HTTPValidationError}})
 async def assist(request: Request):
     global DB
+    print(f"Вопрос: {request.query}")
     context = chat_bot.get_context(request.query, DB, top=2)
-    return Response(text=f"Processed query: {context}", links=["http://example.com"])
+    response = ollama.chat(model=chat_bot.LLM_NAME, messages=[
+        {
+            'role': 'user',
+            'content': f'Дай развёрнутый и как можно более точный ответ на вопрос пользователя. '
+                       f'Для ответа используй дополнительную информацию (FAQ). Приведи релевантные ссылки. '
+                       f'\nВопрос: {request}.\n Дополнительная информация (FAQ): {context}', }],
+                           stream=False
+                           )
+
+    return Response(text=f"Processed query: {response['message']['content']}", links=["http://example.com"])
 
 
 if __name__ == "__main__":
