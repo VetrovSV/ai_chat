@@ -29,9 +29,10 @@ async def assist(request: Request):
                        f'\nВопрос: {request}.\n Дополнительная информация (FAQ): {context}', }],
                            stream=False
                            )
-
+    
     return Response(text=f"Processed query: {response['message']['content']}", links=["http://example.com"])
 
 
 if __name__ == "__main__":
+    print("Запуск сервера")
     uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)

@@ -44,12 +44,8 @@ def load_dataset(filename_json: str, embeddings_maker):
      """
     # загрузка датасета
     print("Загрузка датасета")
-    # data = pd.json_normalize(pd.read_json(filename_json)['data'])
+    data = pd.json_normalize(pd.read_json(filename_json)['data'])
     # json_normalize, чтобы избавиться от корневого элемента, сделать плоский датафреим
-    # загрузка уже сформированной векторной БД
-    DB = FAISS.load_local(folder_path=DB_FAISS, embeddings=Embeddings_maker,
-                                            allow_dangerous_deserialization = True    # да, я уверен, что в файле нет вредоносного кода
-                      )
     print(f"Загружено документов: {len(data)}")
 
     # создание БД из датасета
@@ -97,7 +93,7 @@ def init_DB():
                                                encode_kwargs={'normalize_embeddings': False})
     # попробовать нормализацию эмбеддингов?
 
-    Texts = load_dataset(filename_json="data/dataset.json", embeddings_maker=Embeddings_maker)
+    # Texts = load_dataset(filename_json="data/dataset.json", embeddings_maker=Embeddings_maker)
     # создаем хранилище
     print("создаем хранилище... ", end="")
     # DB = FAISS.from_documents(Texts, Embeddings_maker)    # вернёт экземпляр FAISS
