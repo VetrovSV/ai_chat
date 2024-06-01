@@ -26,6 +26,17 @@ EMB_MODEL_NAME = "cointegrated/LaBSE-en-ru"
 # папка с файлами векторной БД
 DB_FAISS = "data/dataset.faiss"
 
+# для доступа к YandexGPT
+YGPT_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
+YGPT_URI = "ds://bt168m74v9ui1ml0upnh"
+
+TEMPERATUE = 0.1        # нужна для всех моделей
+# что писать LLM (пока для YandexGPT) перед контекстом
+PRE_PROMPT = ("Ты бот-помощник для помощи клиентам банка Тинькофф. Отвечай только по базе знаний Тинькофф, если ответа "
+              "нет, то отвечай, что не знаешь, чтобы не ввести в заблуждение. В конце обязательно вставляй ссылку на "
+              "статью откуда узнал. Дополнительная информация для ответа")
+# todo: просить разделять всё по пунктам?
+
 
 def init_emb_model(model_name:str, model_kwargs:dict, encode_kwargs:dict):
     """Скачивает (если нужно) языковую модель для эмбеддингов, возвращает её"""
@@ -60,17 +71,17 @@ def load_dataset(filename_json: str, embeddings_maker):
     loader = DataFrameLoader(data, page_content_column='title')     # title -  вопрос
     documents = loader.load()
     # объект, который будет разбивать тексты из датасета на блоки, если вдруг они будут слишком большими для модели выдающий эмбеддинги
+    # todo: параметризовать это
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=embeddings_maker.client.max_seq_length, chunk_overlap=0)
     # chunk_size - это размер блока в токенах, будет разбивать на части только ключ (здесь, это вопрос)
     # получим блоки. Блок = (вопрос (ключ), ответ);
     # Вопрос может быть не полным, если не поместится в chunk_size. Тогда создаётся новый блок, с остатком вопроса, но с таким же ответом.
     texts = text_splitter.split_documents(documents)
-    print(
-        f"текстов: {len(texts)}")  # при максимальном размере вопроса в токенах 384, разбивать вопросы на части не пришлось.
+    print(f"текстов: {len(texts)}")  # при максимальном размере вопроса в токенах 384, разбивать вопросы на части не пришлось.
     return texts
 
 
-def get_context(user_request: str, db, top):
+def get_context(user_request: str, db:FAISS, top:int):
     """Получить контекст для вопроса (top - число документов) используя БД db
     @param user_request: исходный запрос пользователя
     @param db - объект векторной БД
@@ -105,10 +116,11 @@ def get_context(user_request: str, db, top):
 
 
 def init_DB():
-    """для проверки работы сервера"""
+    """Инициализирует всё, что необходимо для работы базы знаний (модель эмбеддингов текстов, векторная БД);
+    Векторная БД загружается из файлов"""
     # загрузка модели эмбеддингов
     Embeddings_maker = init_emb_model(model_name=EMB_MODEL_NAME,
-                                               model_kwargs={'device': 'cpu'},
+                                               model_kwargs={'device': 'cpu'},      # todo: параметризовать
                                                encode_kwargs={'normalize_embeddings': False})
     # попробовать нормализацию эмбеддингов?
 
@@ -130,16 +142,16 @@ def get_Answer_from_YAGPT(text):
     state, context, links = get_context(text, DB, top=2)
     if state == 0:
         req = {
-                "modelUri": "ds://bt168m74v9ui1ml0upnh",
+                "modelUri": YGPT_URI,
                 "completionOptions": {
                     "stream": False,
-                    "temperature": 0.1,
+                    "temperature": TEMPERATUE,
                     "maxTokens": "2000"
                 },
                 "messages": [
                     {
                     "role": "system",
-                    "text": f"Ты бот-помощник для помощи клиентам банка Тинькофф. Отвечай только по базе знаний Тинькофф, если ответа нет, то отвечай, что не знаешь, чтобы не ввести в заблуждение. В конце обязательно вставляй ссылку на статью откуда узнал. Дополнительная информация для ответа:{context}"
+                    "text": f"{PRE_PROMPT}:{context}"
                     },
                     {
                     "role": "user",
@@ -148,12 +160,14 @@ def get_Answer_from_YAGPT(text):
                 ]
         }
         headers = {"Authorization" : "Api-Key " + API_KEY, "x-folder-id": X_FOLDER_ID, }
-        res = requests.post("https://llm.api.cloud.yandex.net/foundationModels/v1/completion", headers=headers, json=req)
+        res = requests.post(YGPT_URL, headers=headers, json=req)
         print(res)
         res = res.json()
         return res['result']['alternatives'][0]['message']['text'], links
     elif state == 1:
         return context, links
+
+
 
 # нужно перенести в более подходящее место
 DB = init_DB()
