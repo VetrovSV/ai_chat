@@ -20,7 +20,7 @@ app = FastAPI(title="Assistant API", version="0.1.0")
 async def assist(request: Request):
     global DB
     print(f"Вопрос: {request.query}")
-    context = chat_bot.get_context(request.query, DB, top=2)
+    context, links = chat_bot.get_context(request.query, DB, top=2)
     response = ollama.chat(model=chat_bot.LLM_NAME, messages=[
         {
             'role': 'user',
@@ -30,13 +30,13 @@ async def assist(request: Request):
                            stream=False
                            )
     print(f"Ответ: {response['message']['content']}")
-    return Response(text=f"Processed query: {response['message']['content']}", links=["http://example.com"])
+    return Response(text=f"Processed query: {response['message']['content']}", links=links)
 
 
 if __name__ == "__main__":
     print("Запуск сервера")
     # uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)
     HOST = "0.0.0.0"
-    PORT = 60003
+    PORT = 60004                        
     print(f"Запуск на {HOST}:{PORT}")
     uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
