@@ -22,18 +22,22 @@ RUN adduser --disabled-password --home /home/app --shell /bin/bash app
 USER app
 WORKDIR /home/app
 
-COPY requirements_server_test.txt requirements.txt
+COPY requirements.txt requirements.txt
+# это долго
 RUN pip3 install -r requirements.txt
 # RUN python -m venv app_venv
 # похоже это костыль, создавать виртуальное окружение, но так быстрее настроить
 # RUN source app_venv/bin/acivate
 
-COPY ["testAPI/Client_Server (Gena)/*", "."]
+run mkdir data
+COPY ["data/", "data/"]
+COPY ["*.py", "."]
 # ADD templates/* /home/app/templates/
 
 
 # проверка сервера: curl -X POST -H 'Content-Type: application/json' -d '{"query":"Hello"}'  http://0.0.0.0:8000/assist
 
+# todo: добавить переменные окружения для запуска задания порта, моделей и т.п.
 
 # cmd ["/usr/sbin/sshd", "-D"]
 cmd python3 main.py
