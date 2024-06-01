@@ -80,6 +80,16 @@ def get_context(user_request: str, db, top):
     # todo: добавлять ссылку
     # todo: сделать отбор документов для контекста на основе порогового расстояния?
     context = db.similarity_search_with_score(user_request, k=top)
+    print(context)
+    nearest = min(context, key=lambda x: x[1])
+    # Если ближайший вектор очень близок, то это в точности тот вопрос, значит можно вернуть его описание и ссылку на статью
+    # Статус 0 - ответ не очевиден, стоит обратиться к модели
+    # Статус 1 - ответ очевиден, можно выдать его, чтобы не загружать модель лишний раз
+    # Статус 2 - ответ слишком не очевиден и непонятно как дать на него ответ исходя из базы знаний Тинькофф
+    if nearest[1] < 0.05:
+        return 1, f"{nearest[0].metadata['description']}. Подробнее по ссылке {nearest[0].metadata['url']}", [nearest[0].metadata['url']]
+    if nearest[1] > 10:
+        return 2, nearest[0].metadata['description'], [nearest[0].metadata['url']]
     # print(context)
     # идекс 0 - документ
     # идекс 1 - похожесть
@@ -91,7 +101,7 @@ def get_context(user_request: str, db, top):
     # title - вопрос
     # todo: контролировать размер контекста, чтобы он влезал в промпт LLM
     # print(context)
-    return context_text, links
+    return 0, context_text, links
 
 
 def init_DB():
@@ -115,31 +125,35 @@ def init_DB():
     return DB
 
 def get_Answer_from_YAGPT(text):
-    global DB
-    context, links = get_context(text, DB, top=2)
-
-    req = {
-            "modelUri": "ds://bt168m74v9ui1ml0upnh",
-            "completionOptions": {
-                "stream": False,
-                "temperature": 0.1,
-                "maxTokens": "2000"
-            },
-            "messages": [
-                {
-                "role": "system",
-                "text": f"Ты бот-помощник для помощи клиентам банка Тинькофф. Отвечай только по базе знаний Тинькофф, если ответа нет, то отвечай, что не знаешь, чтобы не ввести в заблуждение. В конце обязательно вставляй ссылку на статью откуда узнал. Дополнительная информация для ответа:{context}"
+    """Получить ответ от YandexGPT. Нужно задать Api-Key и x-folder-id (см. код внизу файла)"""
+    global DB   # База знаний
+    state, context, links = get_context(text, DB, top=2)
+    if state == 0:
+        req = {
+                "modelUri": "ds://bt168m74v9ui1ml0upnh",
+                "completionOptions": {
+                    "stream": False,
+                    "temperature": 0.1,
+                    "maxTokens": "2000"
                 },
-                {
-                "role": "user",
-                "text": text
-                }
-            ]
-    }
-    headers = {"Authorization" : "Api-Key " + API_KEY, "x-folder-id": X_FOLDER_ID, }
-    res = requests.post("https://llm.api.cloud.yandex.net/foundationModels/v1/completion", headers=headers, json=req).json()
-    return res['result']['alternatives'][0]['message']['text'], links
-
+                "messages": [
+                    {
+                    "role": "system",
+                    "text": f"Ты бот-помощник для помощи клиентам банка Тинькофф. Отвечай только по базе знаний Тинькофф, если ответа нет, то отвечай, что не знаешь, чтобы не ввести в заблуждение. В конце обязательно вставляй ссылку на статью откуда узнал. Дополнительная информация для ответа:{context}"
+                    },
+                    {
+                    "role": "user",
+                    "text": text
+                    }
+                ]
+        }
+        headers = {"Authorization" : "Api-Key " + API_KEY, "x-folder-id": X_FOLDER_ID, }
+        res = requests.post("https://llm.api.cloud.yandex.net/foundationModels/v1/completion", headers=headers, json=req)
+        print(res)
+        res = res.json()
+        return res['result']['alternatives'][0]['message']['text'], links
+    elif state == 1:
+        return context, links
 
 # нужно перенести в более подходящее место
 DB = init_DB()
