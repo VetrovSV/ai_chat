@@ -38,3 +38,4 @@ if __name__ == "__main__":
 # 2. Запуск этого файла: python3 main.py
 # 3. проверка
 # curl -X POST -H 'Content-Type: application/json' -d '{"query":"Как мне получить кредит?"}'  http://0.0.0.0:60004/assist
+# curl -X POST -H 'Content-Type: application/json' -d '{"query":"Как пропатчить KDE под FreeBSD?"}'  http://0.0.0.0:60004/assist

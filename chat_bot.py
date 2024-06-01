@@ -1,29 +1,30 @@
+"""
+Тут основные константы и функции для работы RAG: соезинение с LLM, эмбеддинги текстов, поиск по БД и т.д.
+"""
+
 import pandas as pd
 from langchain_community.document_loaders import DataFrameLoader
 # будет разбивать тексты на части, чтобы делать их них эмбеддинги
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-
 # класс-обёртка для создания эмбеддингов текстов
 from langchain_community.embeddings import HuggingFaceEmbeddings
-
-# Класс для хранения данных как в векторной БД?. Используется для быстрого поиска подходящего контекста по запросу
+# Класс для хранения данных как в векторной БД. Используется для быстрого поиска подходящего контекста по запросу
 from langchain_community.vectorstores import FAISS
-
-# Класс для отправки GET и POST запроса. Нужен для отправки запроса к YandexGPT Pro
+# Для отправки GET и POST запроса. Нужен для отправки запроса к YandexGPT Pro
 import requests
-
-
-# название модели для получения эмебддингов
-EMB_MODEL_NAME = "cointegrated/LaBSE-en-ru"
-# название большой языковойй модели
-LLM_NAME = "dimweb/ilyagusev-saiga_llama3_8b:Q6_K"
-LLM_NAME = "gemma:2b"
-# файл векторной БД с индексами (и чем-то ещё?)
-DB_FAISS = "data/dataset.faiss"
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 # отключить предупреждения об изменении API загрузки модели эмбеддингов
+
+
+# название модели для получения эмебддингов
+EMB_MODEL_NAME = "cointegrated/LaBSE-en-ru"
+# название большой языковой модели (если используется OLLAMA или что-то подобное)
+# LLM_NAME = "dimweb/ilyagusev-saiga_llama3_8b:Q6_K"
+# LLM_NAME = "gemma:2b"
+# папка с файлами векторной БД
+DB_FAISS = "data/dataset.faiss"
 
 
 def init_emb_model(model_name:str, model_kwargs:dict, encode_kwargs:dict):
@@ -135,8 +136,14 @@ def get_Answer_from_YAGPT(text):
                 }
             ]
     }
-    headers = {"Authorization" : "Api-Key " + 'AQVNz9fpuAtA5fGeDB_rcMEY_byJDgEEPeivMMYn', "x-folder-id": "b1g72uajlds114mlufqi", }
+    headers = {"Authorization" : "Api-Key " + API_KEY, "x-folder-id": X_FOLDER_ID, }
     res = requests.post("https://llm.api.cloud.yandex.net/foundationModels/v1/completion", headers=headers, json=req).json()
     return res['result']['alternatives'][0]['message']['text'], links
 # нужно перенести в более подходящее место
 DB = init_DB()
+
+# загрузка данных для доступа к YandexGPT, (если она используется)
+API_KEY, X_FOLDER_ID = [ line.strip() for line in open("ygpt_secret.txt").readlines() ]
+# пример файла:
+# GerRRRRRRRr_ONi_Mooooo
+# fshdfkufshdfku
