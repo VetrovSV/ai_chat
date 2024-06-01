@@ -2,7 +2,7 @@
 Главный файл приложения. Консольный чат на один запрос.
 Файл для примера. Сервер описывается в main.py
 """
-import chat_bot
+import ai_chat.chat_bot as chat_bot
 import ollama
 # класс для хранения данных как в векторной БД?. Используется для быстрого поиска подходящего контекста по запросу
 from langchain_community.vectorstores import FAISS
