@@ -83,8 +83,8 @@ def get_context(user_request: str, db, top):
     # Статус 2 - ответ слишком не очевиден и непонятно как дать на него ответ исходя из базы знаний Тинькофф
     if nearest[1] < 0.05:
         return 1, f"{nearest[0].metadata['description']}. Подробнее по ссылке {nearest[0].metadata['url']}", [nearest[0].metadata['url']]
-    if nearest[1] > 10:
-        return 2, nearest[0].metadata['description'], [nearest[0].metadata['url']]
+    if nearest[1] > 0.71:
+        return 2, "", []
     # print(context)
     # идекс 0 - документ
     # идекс 1 - похожесть
@@ -148,5 +148,31 @@ def get_Answer_from_YAGPT(text):
         return res['result']['alternatives'][0]['message']['text'], links
     elif state == 1:
         return context, links
+    elif state == 2:
+        return "У меня нет ответа на этот вопрос.", []
 # нужно перенести в более подходящее место
 DB = init_DB()
+
+# def check_some_context(db, top):
+#     """Получить контекст для вопроса (top - число документов) используя БД db
+#     @param user_request: исходный запрос пользователя
+#     @param db - объект векторной БД
+#     @param top - сколько похожих объектов извлекать?
+#     #@return контекст (текст со встроенными ссылками), список ссылок
+#     """
+#     # todo: добавлять ссылку
+#     # todo: сделать отбор документов для контекста на основе порогового расстояния?
+#     with open('data.txt', encoding='utf-8') as f:
+#         data = {'question': [], 'data_question':[], 'answer':[], 'distance': []}
+#         for text in f.readlines():
+#             context = db.similarity_search_with_score(text, k=top)
+#             print(context[0][0])
+#             data['question'].append(text)
+#             data['data_question'].append(context[0][0].page_content)
+#             data['answer'].append(context[0][0].metadata['description'])
+#             data['distance'].append(context[0][1])
+#         d = pd.DataFrame.from_dict(data)
+#         print(d)
+#         d.to_excel('data_bad.xlsx')
+
+# check_some_context(DB, 1)
