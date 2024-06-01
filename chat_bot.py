@@ -21,7 +21,7 @@ DB_FAISS = "data/dataset.faiss"
 
 def init_emb_model(model_name:str, model_kwargs:dict, encode_kwargs:dict):
     """Скачивает (если нужно) языковую модель для эмбеддингов, возвращает её"""
-
+    print("Создание\скачивание модели эмбеддингов текстов... ", end="")
     # загрузка модели эмбеддингов
     # model_kwargs = {'device': 'cpu'}
     # encode_kwargs = {'normalize_embeddings': False}
@@ -31,6 +31,8 @@ def init_emb_model(model_name:str, model_kwargs:dict, encode_kwargs:dict):
         model_kwargs=model_kwargs,
         encode_kwargs=encode_kwargs
     )
+    # todo: копировать уже скаченную модель в докер
+    print("Готово")
     return Embeddings_maker
 
 
@@ -41,8 +43,13 @@ def load_dataset(filename_json: str, embeddings_maker):
     @return тексты в формате пакета langchain_community
      """
     # загрузка датасета
-    data = pd.json_normalize(pd.read_json(filename_json)['data'])
+    print("Загрузка датасета")
+    # data = pd.json_normalize(pd.read_json(filename_json)['data'])
     # json_normalize, чтобы избавиться от корневого элемента, сделать плоский датафреим
+    # загрузка уже сформированной векторной БД
+    DB = FAISS.load_local(folder_path=DB_FAISS, embeddings=Embeddings_maker,
+                                            allow_dangerous_deserialization = True    # да, я уверен, что в файле нет вредоносного кода
+                      )
     print(f"Загружено документов: {len(data)}")
 
     # создание БД из датасета
@@ -61,7 +68,7 @@ def load_dataset(filename_json: str, embeddings_maker):
 
 def get_context(user_request: str, db, top):
     """Получить контекст для вопроса (top - число документов) используя БД db
-    @param user_request: исхдный запрос пользователя
+    @param user_request: исходный запрос пользователя
     @param db - объект векторной БД
     @param top - сколько похожих объектов извлекать?
     #@return
