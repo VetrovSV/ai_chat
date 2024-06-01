@@ -6,21 +6,7 @@ run apt update && apt install -y \
   openssh-server \
   bash \
   && rm -rf /var/lib/apt/lists/*
-# todo: python, jupyter
 
-# включить авторизацию по паролю
-# папка для работы sshd
-run echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
-run mkdir /var/run/sshd
-run ssh-keygen -A
-
-# задать пароль пользователя
-# run useradd -ms /bin/bash user
-# RUN adduser --home /home/app --shell /bin/bash app
-# run echo "app:app" | chpasswd
-
-run curl -fsSL https://ollama.com/install.sh | bash
-run ollama run gemma:2b
 
 RUN adduser --disabled-password --home /home/app --shell /bin/bash app
 
@@ -28,30 +14,31 @@ USER app
 WORKDIR /home/app
 
 COPY requirements.txt requirements.txt
-# это долго
 
 
-# run ollama server
+RUN pip3 install --no-cache-dir -r requirements.txt
+# может занимать 1200+ секунд
 
-RUN pip3 install -r requirements.txt
-# RUN python -m venv app_venv
-# похоже это костыль, создавать виртуальное окружение, но так быстрее настроить
-# RUN source app_venv/bin/acivate
-
+COPY ["ygpt_secret.txt", "."]
 run mkdir data
 COPY ["data/", "data/"]
 COPY ["*.py", "."]
-# ADD templates/* /home/app/templates/
+# перенос модели текстовых эмбеддингов
+run mkdir models--cointegrated--LaBSE-en-ru
+COPY ["models--cointegrated--LaBSE-en-ru/", "models--cointegrated--LaBSE-en-ru"]
 
+# ENV HOST=0.0.0.0
+# ENV PORT=60004
 
 # проверка сервера: curl -X POST -H 'Content-Type: application/json' -d '{"query":"Hello"}'  http://0.0.0.0:8000/assist
 
-# todo: добавить переменные окружения для запуска задания порта, моделей и т.п.
+cmd python3 main.py --port 60004 --host 0.0.0.0
 
-# cmd ["/usr/sbin/sshd", "-D"]
-cmd python3 main.py
 
+# todo: скачать модель для эмбеддингов заранее
+# todo: задать версии, привести в порядок папки и т.п.
+# todo: оптимизировать размер образа
 
 # docker build -t <имя_образа> <путь к каталогу c dockerfile>
-# docker build -t chat_ai:test_server4 .
+# docker build -t chat_ai:test_server6 .
 # docker run  -p 60004:60004 chat_ai:test_server4

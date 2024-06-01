@@ -12,6 +12,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 # Для отправки GET и POST запроса. Нужен для отправки запроса к YandexGPT Pro
 import requests
+import os
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -19,7 +20,15 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
 # название модели для получения эмебддингов
+
 EMB_MODEL_NAME = "cointegrated/LaBSE-en-ru"
+# если модель уже скачена и сохранена в папку
+if (os.path.exists("models--cointegrated--LaBSE-en-ru/snapshots/cf0714e606d4af551e14ad69a7929cd6b0da7f7e/")):
+    print("Модель для эмбеддингов текстов уже существует")
+    EMB_MODEL_NAME = "models--cointegrated--LaBSE-en-ru/snapshots/cf0714e606d4af551e14ad69a7929cd6b0da7f7e/"        # это папка
+else:
+    print("Модель для эмбеддингов текстов НЕ скачена")
+# todo: пофиксить такой путь
 # название большой языковой модели (если используется OLLAMA или что-то подобное)
 # LLM_NAME = "dimweb/ilyagusev-saiga_llama3_8b:Q6_K"
 # LLM_NAME = "gemma:2b"

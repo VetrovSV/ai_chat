@@ -1,6 +1,6 @@
 # для запуска юпитера и т.п.
-ipykernel 
-ipywidgets
+# ipykernel
+# ipywidgets
 
 pandas
 # для создание эмбеддингов (векторов) текстов
@@ -14,7 +14,7 @@ langchain
 faiss-cpu 
 #faiss-gpu
 # для взаимодействия с сервером OLLAMA
-ollama
+# ollama
 
 fastapi
 uvicorn
