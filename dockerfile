@@ -19,6 +19,9 @@ run ssh-keygen -A
 # RUN adduser --home /home/app --shell /bin/bash app
 # run echo "app:app" | chpasswd
 
+run curl -fsSL https://ollama.com/install.sh | bash
+run ollama run gemma:2b
+
 RUN adduser --disabled-password --home /home/app --shell /bin/bash app
 
 USER app
@@ -26,6 +29,10 @@ WORKDIR /home/app
 
 COPY requirements.txt requirements.txt
 # это долго
+
+
+# run ollama server
+
 RUN pip3 install -r requirements.txt
 # RUN python -m venv app_venv
 # похоже это костыль, создавать виртуальное окружение, но так быстрее настроить
