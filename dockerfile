@@ -1,5 +1,7 @@
 # from debian:bookworm-slim
 from python:3.12.3-bullseye
+# нужен VPN
+
 run apt update && apt install -y \
   openssh-server \
   bash \
@@ -44,4 +46,5 @@ cmd python3 main.py
 
 
 # docker build -t <имя_образа> <путь к каталогу c dockerfile>
-# docker run  -p 60004:60004
+# docker build -t chat_ai:test_server4 .
+# docker run  -p 60004:60004 chat_ai:test_server4

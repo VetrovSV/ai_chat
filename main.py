@@ -12,7 +12,7 @@ import chat_bot
 
 
 
-
+print("Создание сервера")
 app = FastAPI(title="Assistant API", version="0.1.0")
 
 
@@ -21,6 +21,7 @@ async def assist(request: Request):
     # global chat_bot.DB
     print(f"Вопрос: {request.query}")
     context, links = chat_bot.get_context(request.query, chat_bot.DB, top=2)
+    # todo: сделать обработку на случай, если сервер ollama недоступен
     response = ollama.chat(model=chat_bot.LLM_NAME, messages=[
         {
             'role': 'user',
@@ -41,5 +42,8 @@ if __name__ == "__main__":
     print(f"Запуск на {HOST}:{PORT}")
     uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
 
-
+#
+# 1. Запуск ollama serve
+# 2. Запуск этого файла
+# 3. проверка
 # curl -X POST -H 'Content-Type: application/json' -d '{"query":"Как мне получить кредит?"}'  http://0.0.0.0:60004/assist
