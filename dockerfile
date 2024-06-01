@@ -44,4 +44,4 @@ cmd python3 main.py
 
 
 # docker build -t <имя_образа> <путь к каталогу c dockerfile>
-# docker run  -p 8000:8000
+# docker run  -p 60004:60004

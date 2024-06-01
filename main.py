@@ -11,16 +11,16 @@ import ollama
 import chat_bot
 
 
-DB = chat_bot.init_DB()  # todo: это запускается три раза. Как исправить?
+
 
 app = FastAPI(title="Assistant API", version="0.1.0")
 
 
 @app.post("/assist", response_model=Response, responses={422: {"model": HTTPValidationError}})
 async def assist(request: Request):
-    global DB
+    # global chat_bot.DB
     print(f"Вопрос: {request.query}")
-    context, links = chat_bot.get_context(request.query, DB, top=2)
+    context, links = chat_bot.get_context(request.query, chat_bot.DB, top=2)
     response = ollama.chat(model=chat_bot.LLM_NAME, messages=[
         {
             'role': 'user',

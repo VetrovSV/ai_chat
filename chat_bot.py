@@ -103,4 +103,9 @@ def init_DB():
     DB = FAISS.load_local(folder_path=DB_FAISS, embeddings=Embeddings_maker,
                           allow_dangerous_deserialization=True  # да, я уверен, что в файле нет вредоносного кода
                           )
+    print("Готово")
     return DB
+
+
+# нужно перенести в более подходящее место
+DB = init_DB()
