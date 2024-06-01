@@ -38,5 +38,5 @@ if __name__ == "__main__":
     # uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)
     HOST = "0.0.0.0"
     PORT = 60003
-    print("Запуск на {HOST}:{PORT}")
+    print(f"Запуск на {HOST}:{PORT}")
     uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
