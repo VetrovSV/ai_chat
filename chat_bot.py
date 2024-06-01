@@ -139,6 +139,8 @@ def get_Answer_from_YAGPT(text):
     headers = {"Authorization" : "Api-Key " + API_KEY, "x-folder-id": X_FOLDER_ID, }
     res = requests.post("https://llm.api.cloud.yandex.net/foundationModels/v1/completion", headers=headers, json=req).json()
     return res['result']['alternatives'][0]['message']['text'], links
+
+
 # нужно перенести в более подходящее место
 DB = init_DB()
 
