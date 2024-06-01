@@ -40,3 +40,6 @@ if __name__ == "__main__":
     PORT = 60004                        
     print(f"Запуск на {HOST}:{PORT}")
     uvicorn.run("main:app", host=HOST, port=PORT, reload=True)
+
+
+# curl -X POST -H 'Content-Type: application/json' -d '{"query":"Как мне получить кредит?"}'  http://0.0.0.0:60004/assist

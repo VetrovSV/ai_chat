@@ -75,7 +75,7 @@ def get_context(user_request: str, db, top):
     # print(context)
     # идекс 0 - документ
     # идекс 1 - похожесть
-    context = "\n\n".join([ "Вопрос: " + text[0].page_content +
+    context_text = "\n\n".join([ "Вопрос: " + text[0].page_content +
                             "\nОтвет: " +  text[0].metadata['description'] +
                            "\nСсылка: " + text[0].metadata['url'] for text in context])
     links = [text[0].metadata['url'] for text in context]
@@ -83,7 +83,7 @@ def get_context(user_request: str, db, top):
     # title - вопрос
     # todo: контролировать размер контекста, чтобы он влезал в промпт LLM
     # print(context)
-    return context, links
+    return context_text, links
 
 
 def init_DB():
