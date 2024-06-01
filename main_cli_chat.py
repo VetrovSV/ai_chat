@@ -4,7 +4,7 @@
 """
 import ai_chat.chat_bot as chat_bot
 import ollama
-# класс для хранения данных как в векторной БД?. Используется для быстрого поиска подходящего контекста по запросу
+# Класс для хранения данных как в векторной БД?. Используется для быстрого поиска подходящего контекста по запросу
 from langchain_community.vectorstores import FAISS
 
 
@@ -16,11 +16,10 @@ LLM_NAME = "gemma:2b"
 # файл векторной БД с индексами (и чем-то ещё?)
 DB_FAISS = "data/dataset.faiss"
 
-
 # загрузка модели эмбеддингов
 Embeddings_maker = chat_bot.init_emb_model( model_name= EMB_MODEL_NAME,
                                             model_kwargs = {'device': 'cpu'}, encode_kwargs = {'normalize_embeddings': False} )
-# попробовать нормализацию эмбеддингов?
+# todo: попробовать нормализацию эмбеддингов?
 
 
 Texts = chat_bot.load_dataset( filename_json = "data/dataset.json", embeddings_maker=Embeddings_maker)

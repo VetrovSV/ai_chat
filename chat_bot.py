@@ -21,6 +21,10 @@ LLM_NAME = "gemma:2b"
 # файл векторной БД с индексами (и чем-то ещё?)
 DB_FAISS = "data/dataset.faiss"
 
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+# отключить предупреждения об изменении API загрузки модели эмбеддингов
+
 
 def init_emb_model(model_name:str, model_kwargs:dict, encode_kwargs:dict):
     """Скачивает (если нужно) языковую модель для эмбеддингов, возвращает её"""

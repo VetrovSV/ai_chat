@@ -15,6 +15,7 @@ print("Создание сервера")
 app = FastAPI(title="Assistant API", version="0.1.0")
 
 
+
 @app.post("/assist", response_model=Response, responses={422: {"model": HTTPValidationError}})
 async def assist(request: Request):
     # global chat_bot.DB
@@ -34,6 +35,6 @@ if __name__ == "__main__":
 
 #
 # 1. Запуск ollama serve
-# 2. Запуск этого файла
+# 2. Запуск этого файла: python3 main.py
 # 3. проверка
 # curl -X POST -H 'Content-Type: application/json' -d '{"query":"Как мне получить кредит?"}'  http://0.0.0.0:60004/assist
