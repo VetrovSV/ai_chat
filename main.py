@@ -8,9 +8,8 @@ from fastapi import FastAPI, HTTPException
 from models import Request, Response, HTTPValidationError
 import uvicorn
 import ollama
-import chat_bot
-
-
+import chat_bot as chat_bot
+import requests
 
 print("Создание сервера")
 app = FastAPI(title="Assistant API", version="0.1.0")
@@ -20,24 +19,15 @@ app = FastAPI(title="Assistant API", version="0.1.0")
 async def assist(request: Request):
     # global chat_bot.DB
     print(f"Вопрос: {request.query}")
-    context, links = chat_bot.get_context(request.query, chat_bot.DB, top=2)
-    # todo: сделать обработку на случай, если сервер ollama недоступен
-    response = ollama.chat(model=chat_bot.LLM_NAME, messages=[
-        {
-            'role': 'user',
-            'content': f'Дай развёрнутый и как можно более точный ответ на вопрос пользователя. '
-                       f'Для ответа используй дополнительную информацию (FAQ). Приведи релевантные ссылки. '
-                       f'\nВопрос: {request}.\n Дополнительная информация (FAQ): {context}', }],
-                           stream=False
-                           )
-    print(f"Ответ: {response['message']['content']}")
-    return Response(text=f"Processed query: {response['message']['content']}", links=links)
+    text, links = chat_bot.get_Answer_from_YAGPT(request.query)
+    print(f"Ответ: {text}")
+    return Response(text=text, links=links)
 
 
 if __name__ == "__main__":
     print("Запуск сервера")
     # uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)
-    HOST = "0.0.0.0"
+    HOST = "localhost"
     PORT = 60004                        
     print(f"Запуск на {HOST}:{PORT}")
     uvicorn.run("main:app", host=HOST, port=PORT, reload=True)

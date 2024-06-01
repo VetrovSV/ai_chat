@@ -9,6 +9,9 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 # Класс для хранения данных как в векторной БД?. Используется для быстрого поиска подходящего контекста по запросу
 from langchain_community.vectorstores import FAISS
 
+# Класс для отправки GET и POST запроса. Нужен для отправки запроса к YandexGPT Pro
+import requests
+
 
 # название модели для получения эмебддингов
 EMB_MODEL_NAME = "cointegrated/LaBSE-en-ru"
@@ -106,6 +109,30 @@ def init_DB():
     print("Готово")
     return DB
 
+def get_Answer_from_YAGPT(text):
+    global DB
+    context, links = get_context(text, DB, top=2)
 
+    req = {
+            "modelUri": "ds://bt168m74v9ui1ml0upnh",
+            "completionOptions": {
+                "stream": False,
+                "temperature": 0.1,
+                "maxTokens": "2000"
+            },
+            "messages": [
+                {
+                "role": "system",
+                "text": f"Ты бот-помощник для помощи клиентам банка Тинькофф. Отвечай только по базе знаний Тинькофф, если ответа нет, то отвечай, что не знаешь, чтобы не ввести в заблуждение. В конце обязательно вставляй ссылку на статью откуда узнал. Дополнительная информация для ответа:{context}"
+                },
+                {
+                "role": "user",
+                "text": text
+                }
+            ]
+    }
+    headers = {"Authorization" : "Api-Key " + 'AQVNz9fpuAtA5fGeDB_rcMEY_byJDgEEPeivMMYn', "x-folder-id": "b1g72uajlds114mlufqi", }
+    res = requests.post("https://llm.api.cloud.yandex.net/foundationModels/v1/completion", headers=headers, json=req).json()
+    return res['result']['alternatives'][0]['message']['text'], links
 # нужно перенести в более подходящее место
 DB = init_DB()
