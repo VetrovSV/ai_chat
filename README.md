@@ -4,7 +4,6 @@
 
 
 - `main.py` - главный файл сервера, тут обработчики запросов по API
-- `json`
 - `main_cli_chat.py` - главный файл, можно потестить чат в консоли 
 - `chat_bot.py` - туда спрятал все функции загрузки, инициализации и т.п.
 - `data` - папка с данными
@@ -13,7 +12,7 @@
 - `fastAPI` - примеры API
 - `experiments\checking_bot.py` - файл с проверкой точности ответов бота
 - `openapi.yaml`,`openapi.yaml` - контракт swagger'а, определяющего правило взаимодействия нашего развернутого решения по API для проверки
-- `models.py` - файл определяяющий модели данных для API с использованием `pydantic`.
+- `models.py` - файл определяющий модели данных для API с использованием `pydantic`.
 
  
 [Скринкаст](https://drive.google.com/file/d/1psd_ouyXrp1EoJtI7dBaFsAFRzRUMesj/view?usp=drive_link)
