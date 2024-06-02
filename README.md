@@ -44,3 +44,5 @@ docker run --restart=always  -p 1234:60004 chat_ai:test_server8
 
 *количество запросов в час может быть ограничено (до 100) используемым сервисом YandexGPT*
 
+Описание API: https://github.com/VetrovSV/ai_chat/blob/main/openapi.yaml
+
