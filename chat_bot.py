@@ -18,6 +18,10 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 # отключить предупреждения об изменении API загрузки модели эмбеддингов
 
+# номер телефона поддержки
+SUPPORT_PHONE = "8 800 3 1415"
+MAIN_HELP_PAGE = "https://www.tinkoff.ru/business/"
+
 
 # название модели для получения эмебддингов
 
@@ -108,8 +112,8 @@ def get_context(user_request: str, db:FAISS, top:int):
     # Статус 2 - ответ слишком не очевиден и непонятно как дать на него ответ исходя из базы знаний Тинькофф
     if nearest[1] < 0.05:
         return 1, f"{nearest[0].metadata['description']}. Подробнее по ссылке {nearest[0].metadata['url']}", [nearest[0].metadata['url']]
-    if nearest[1] > 10:
-        return 2, nearest[0].metadata['description'], [nearest[0].metadata['url']]
+    if nearest[1] > 0.71:
+        return 2, "", []
     # print(context)
     # идекс 0 - документ
     # идекс 1 - похожесть
@@ -145,6 +149,7 @@ def init_DB():
     print("Готово")
     return DB
 
+
 def get_Answer_from_YAGPT(text):
     """Получить ответ от YandexGPT. Нужно задать Api-Key и x-folder-id (см. код внизу файла)"""
     global DB   # База знаний
@@ -172,9 +177,16 @@ def get_Answer_from_YAGPT(text):
         res = requests.post(YGPT_URL, headers=headers, json=req)
         print(res)
         res = res.json()
-        return res['result']['alternatives'][0]['message']['text'], links
+        if 'result' in res:
+            return res['result']['alternatives'][0]['message']['text'], links
+        else:
+            return  "У нас технические неполадки. Исправляем. Напишите нам позже. А пока можете посмотреть ответ на Ваш вопрос по ссылкам: ", links
     elif state == 1:
         return context, links
+    elif state == 2:
+        return (f"У меня нет ответа на этот вопрос. Если вопрос связан с работой банка, "
+                f"то обратитесь в поддержку по номеру телефона {SUPPORT_PHONE} или воспользуйтесь справкой на странице {MAIN_HELP_PAGE}"), []
+
 
 
 
@@ -186,3 +198,7 @@ API_KEY, X_FOLDER_ID = [ line.strip() for line in open("ygpt_secret.txt").readli
 # пример файла:
 # GerRRRRRRRr_ONi_Mooooo
 # fshdfkufshdfku
+
+# нужно перенести в более подходящее место
+DB = init_DB()
+
