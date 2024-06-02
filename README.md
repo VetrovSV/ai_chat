@@ -35,7 +35,7 @@ docker run --restart=always  -p 1234:60004 chat_ai:test_server8
 в переменной `LLM_NAME`
 
 
-## Данные для  доустпа
+## Данные для  доступа
 
 Адрес сервера: http://95.189.96.144:60012/assist
 
