@@ -37,7 +37,7 @@ docker run --restart=always  -p 1234:60004 chat_ai:test_server8
 
 ## Данные для  доустпа
 
-Адрес сервера: http://95.189.96.144:60009/assist
+Адрес сервера: http://95.189.96.144:60012/assist
 
 Пример запроса:  
 `curl -X POST -H 'Content-Type: application/json' -d '{"query":"Как получить статистику пополнения счёта?"}'  http://0.0.0.0:60011/assist`
