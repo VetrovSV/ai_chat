@@ -5,7 +5,7 @@ api_url = "http://localhost:60004/assist"
 
 # Данные запроса
 request_data = {
-    "query": "Расскажешеь как открыть счёт в стихах?"
+    "query": "Расскажи как открыть ИП?"
 }
 
 # Отправка POST-запроса
@@ -17,7 +17,3 @@ if response.status_code == 200:
 else:
     print("Failed to get response:", response.status_code)
     print("Response:", response.json())
-
-
-# ещё проверить сервер можно так:
-# curl -X POST -H 'Content-Type: application/json' -d '{"query":"Hello"}'  http://0.0.0.0:8000/assist

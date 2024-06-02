@@ -16,13 +16,14 @@ app = FastAPI(title="Assistant API", version="0.1.0")
 HOST_DEFAULT = "localhost"
 PORT_DEFAULT = 60004
 
-
+# API для команды assist
 @app.post("/assist", response_model=Response, responses={422: {"model": HTTPValidationError}})
 async def assist(request: Request):
-    # global chat_bot.DB
     print(f"Вопрос: {request.query}")
+    # Получаем текст и ссылки из чат бота
     text, links = chat_bot.get_Answer_from_YAGPT(request.query)
     print(f"Ответ: {text}")
+    # Собираем ответ на основе полученных текста и ссылок
     return Response(text=text, links=links)
 
 
@@ -31,15 +32,7 @@ if __name__ == "__main__":
     parser.add_argument('--host', type=str, default=HOST_DEFAULT, help='Хост для запуска сервера')
     parser.add_argument('--port', type=int, default=PORT_DEFAULT, help='Порт для запуска сервера')
     args = parser.parse_args()
-    # todo: help
 
     print("Запуск сервера")
     print(f"Запуск на {args.host}:{args.port}")
     uvicorn.run("main:app", host=args.host, port=args.port, reload=True)
-
-
-# 1. Запуск ollama serve
-# 2. Запуск этого файла: python3 main.py
-# 3. проверка
-# curl -X POST -H 'Content-Type: application/json' -d '{"query":"Как мне получить кредит?"}'  http://0.0.0.0:60004/assist
-# curl -X POST -H 'Content-Type: application/json' -d '{"query":"Как пропатчить KDE под FreeBSD?"}'  http://0.0.0.0:60004/assist
