@@ -38,7 +38,7 @@ DB_FAISS = "data/dataset.faiss"
 
 # для доступа к YandexGPT
 YGPT_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
-YGPT_URI = "ds://bt168m74v9ui1ml0upnh"
+YGPT_URI = "ds://bt3842m74v5ui1ml8usdak"
 
 TEMPERATUE = 0.5        # нужна для всех моделей  
 # что писать LLM (пока для YandexGPT) перед контекстом
